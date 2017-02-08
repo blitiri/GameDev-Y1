@@ -1,0 +1,11 @@
+- Camera isometrica che ti segue (y freezato, x e z si muovono)
+- personaggio che W e S va avanti e indietro e con A e D ruota
+- deve sparare ma se mantenuta la pressione del tasto sx devi caricare il colpo, nel
+  senso che più tieni premuto più il colpo sarà forte e andrà lontano (contrariamente
+  se dai un click rapido il proiettile devi fare poca distanza)
+- un nemico che ti insegue, ma se arriva entro una certa distanza da te si ferma e
+  comincia a spararti (i nemici non devono caricare sparano sempre a massima potenza)
+- (facoltativo) fare in modo che ogni nemico ucciso ti dia un tot di punti e poi una
+  volta morto spawni due nemici (per esser chiari, ne devono arrivare prima uno poi
+  due poi quattro e cosi via).
+- muori con un colpo singolo
