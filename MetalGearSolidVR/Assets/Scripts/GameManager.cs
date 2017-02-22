@@ -14,11 +14,13 @@ public class GameManager : MonoBehaviour {
 
 	void Awake() {
 		instance = this;
+		running = false;
 	}
 
 	// Use this for initialization
 	void Start () {
 		GameObject enemy;
+		EnemyManager enemyManager;
 		int enemyIndex;
 
 		running = true;
@@ -26,10 +28,11 @@ public class GameManager : MonoBehaviour {
 		player.transform.position = startPosition.position;
 		for(enemyIndex = 0; enemyIndex < enemiesStartPositions.Length; enemyIndex++) {
 			enemy = Instantiate (enemyPrefab) as GameObject;
-			enemy.transform.position  = enemiesStartPositions[enemyIndex].position;
-			enemy.SetActive(true);
-			Debug.Log ("Enemy " + enemyIndex + " instantiated");
+			enemyManager = enemy.GetComponent<EnemyManager> ();
+			enemyManager.Init (player, enemiesStartPositions [enemyIndex], enemiesEndPositions [enemyIndex]);
+			Debug.Log ("Enemy " + enemyIndex + " instantiated - start: " + enemiesStartPositions [enemyIndex] + ", end " + enemiesEndPositions [enemyIndex]);
 		}
+		running = true;
 	}
 	
 	// Update is called once per frame

@@ -1,58 +1,75 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class EnemyManager : MonoBehaviour {
+public class EnemyManager : PlayerDetector {
 	public NavMeshAgent agent;
-	public GameObject player;
-	public float viewingAngle = 90;
-	public float maxLostContactTime = 1;
+	public float lostContactMaxTime = 1;
 	private float lostContactStartTime;
-	private Vector3 startPosition;
-	private Vector3 endPosition;
-	private Vector3 lastPatrollingPosition;
+	private Transform startPosition;
+	private Transform endPosition;
+	private Transform lastPatrollingPosition;
 	private bool followPlayer;
 	private bool goToCamera;
 	private bool patrolling;
 	private bool backToPosition;
+	private bool inited;
 	private GameObject currentCamera;
 
-	// Use this for initialization
-	void Start () {
+	void Awake() {
+		inited = false;
+	}
+
+	void Update () {
+		if (inited) {
+			Move ();
+		}
+	}
+
+	public void Init(GameObject player, Transform startPosition, Transform endPosition) {
 		followPlayer = false;
 		goToCamera = false;
 		patrolling = true;
 		backToPosition = false;
-		lastPatrollingPosition = startPosition;
-		transform.position = startPosition;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
+		this.startPosition = startPosition;
+		this.endPosition = endPosition;
+		lastPatrollingPosition = this.startPosition;
+		transform.position = this.startPosition.position;
+		agent.destination = this.startPosition.position;
+		lostContactStartTime = -1;
+		this.player = player;
+		inited = true;
 	}
 
 	private void Move() {
 		if (followPlayer) {
 			agent.destination = player.transform.position;
+			if (!IsPlayerVisible (gameObject.transform, transform.forward)) {
+				if (lostContactStartTime < 0) {
+					lostContactStartTime = Time.time;
+				}
+				if (Time.time - lostContactStartTime > lostContactMaxTime) {
+					AlarmCeased ();
+				}
+			}
 		}
 		else if(goToCamera) {
 			agent.destination = currentCamera.transform.position;
 			goToCamera = false;
 		}
 		else if(backToPosition) {
-			agent.destination = endPosition;
-			lastPatrollingPosition = endPosition;
-			backToPosition = false;
+			agent.destination = startPosition.position;
+			lastPatrollingPosition = startPosition;
+			Patrolling ();
 		}
 		else if(patrolling) {
 			if (agent.remainingDistance < 0.5f) {
-				if (lastPatrollingPosition == startPosition) {
+				if (lastPatrollingPosition.Equals(startPosition)) {
 					if (endPosition != null) {
-						agent.destination = endPosition;
+						agent.destination = endPosition.position;
 						lastPatrollingPosition = endPosition;
 					}
-				} else if (lastPatrollingPosition == endPosition) {
-					agent.destination = startPosition;
+				} else if (lastPatrollingPosition.Equals(endPosition)) {
+					agent.destination = startPosition.position;
 					lastPatrollingPosition = startPosition;
 				}
 			}
@@ -64,7 +81,7 @@ public class EnemyManager : MonoBehaviour {
 		goToCamera = false;
 		patrolling = false;
 		backToPosition = false;
-		lostContactStartTime = 0;
+		lostContactStartTime = -1;
 	}
 
 	public void ReactToAllarm(GameObject camera) {
@@ -83,17 +100,24 @@ public class EnemyManager : MonoBehaviour {
 		backToPosition = true;
 	}
 
-	private bool IsPlayerVisible() {
-		return true;
+	public void Patrolling() {
+		followPlayer = false;
+		goToCamera = false;
+		patrolling = true;
+		backToPosition = false;
 	}
 
 	void OnCollisionEnter(Collision other) {
-		if(other.gameObject.tag.Equals("player")) {
+		if(other.gameObject.tag.Equals("Player")) {
 			GameManager.instance.PlayerDied ();
 		}
 	}
 
-	public void SetStartPosition(Vector3 startPosition) {
-		this.startPosition = startPosition;
+	void OnTriggerEnter(Collider other) {
+		if (other.gameObject.tag.Equals ("Player")) {
+			if (IsPlayerVisible (gameObject.transform, transform.forward)) {
+				FollowPlayer ();
+			}
+		}
 	}
 }
